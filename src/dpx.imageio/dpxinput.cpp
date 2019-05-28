@@ -101,6 +101,150 @@ private:
 };
 
 
+// DPX emulsion code extraction helpers.
+
+using filmcodes = std::pair<int, int>;
+using emulsiontype = std::tuple<std::string, std::string, std::string>;
+using emulsionmap = std::map<filmcodes, emulsiontype>;
+
+static const emulsionmap g_emulsions{
+    {{0, 29}, emulsiontype{"O","U","UN 54 (100 ASA)"}},
+    {{0, 37}, emulsiontype{"O","U","N 74 (400 ASA)"}},
+    {{10,29}, emulsiontype{"O","U","UN 54 (100 ASA)"}},
+    {{10,37}, emulsiontype{"O","U","N 74 (400 ASA)"}},
+    {{1, 20}, emulsiontype{"A","N","XT 100"}},
+    {{1, 24}, emulsiontype{"A","M","XTR 250"}},
+    {{1, 83}, emulsiontype{"A","F","XT 320"}},
+    {{1, 84}, emulsiontype{"A","S","XTS 400"}},
+    {{11,20}, emulsiontype{"A","N","XT 100"}},
+    {{11,24}, emulsiontype{"A","M","XTR 250"}},
+    {{11,83}, emulsiontype{"A","F","XT 320"}},
+    {{11,84}, emulsiontype{"A","S","XTS 400"}},
+    {{2,  0}, emulsiontype{"K","P","5600"}},
+    {{2, 14}, emulsiontype{"K","X","SO-214 SFX 200T"}},
+    {{2, 20}, emulsiontype{"K","Y","5620 Prime Time"}},
+    {{2, 22}, emulsiontype{"K","E","5222/7222"}},
+    {{2, 24}, emulsiontype{"K","L","5224"}},
+    {{2, 31}, emulsiontype{"K","H","5231/7231"}},
+    {{2, 34}, emulsiontype{"K","D","5234/7234"}},
+    {{2, 43}, emulsiontype{"K","A","5243/7243"}},
+    {{2, 44}, emulsiontype{"K","V","5244/7244"}},
+    {{2, 45}, emulsiontype{"K","K","5245/7245"}},
+    {{2, 46}, emulsiontype{"K","I","5246/7246 Vision 250D"}},
+    {{2, 47}, emulsiontype{"K","B","5247/7247"}},
+    {{2, 48}, emulsiontype{"K","M","5248/7248"}},
+    {{2, 49}, emulsiontype{"K","O","5249"}},
+    {{2, 72}, emulsiontype{"K","S","5272/7272 Internegative"}},
+    {{2, 74}, emulsiontype{"K","Z","5274/7274 Vision 200T"}},
+    {{2, 77}, emulsiontype{"K","Q","5277/7277"}},
+    {{2, 79}, emulsiontype{"K","U","5279/7279"}},
+    {{2, 87}, emulsiontype{"K","W","5287/7287"}},
+    {{2, 89}, emulsiontype{"K","R","5289 Vision 800T"}},
+    {{2, 92}, emulsiontype{"K","N","7292"}},
+    {{2, 93}, emulsiontype{"K","L","5293/7293"}},
+    {{2, 94}, emulsiontype{"K","G","5294/7294"}},
+    {{2, 95}, emulsiontype{"K","F","5295"}},
+    {{2, 96}, emulsiontype{"K","J","5296/7296"}},
+    {{2, 97}, emulsiontype{"K","C","5297/7297"}},
+    {{2, 98}, emulsiontype{"K","T","5298/7298"}},
+    {{2,  1}, emulsiontype{"E","K","5201/7201 Vision2 50D"}},
+    {{2,  3}, emulsiontype{"E","R","5203/7203 VISION3 50D"}},
+    {{2,  5}, emulsiontype{"E","Q","5205/7205 Vision2 250D"}},
+    {{2,  7}, emulsiontype{"E","N","5207/7207 Vision 3 250D"}},
+    {{2, 12}, emulsiontype{"E","M","5212/7212 Vision2 100T"}},
+    {{2, 13}, emulsiontype{"E","O","5213/7213 Vision3 200T"}},
+    {{2, 17}, emulsiontype{"E","L","5217/7217 Vision2 200T"}},
+    {{2, 18}, emulsiontype{"E","H","5218/7218 Vision2 500T"}},
+    {{2, 19}, emulsiontype{"E","J","5219/7219 Vision3 500T"}},
+    {{2, 23}, emulsiontype{"E","T","5223/7223 Vision3 640T"}},
+    {{2, 27}, emulsiontype{"E","P","5227/7227 Vision3 500T"}},
+    {{2, 29}, emulsiontype{"E","B","5229/7229 Vision2 Expression 500T"}},
+    {{2, 30}, emulsiontype{"E","Z","5230/7230 500T"}},
+    {{2, 42}, emulsiontype{"E","V","5242/7242 Vision Intermediate"}},
+    {{2, 54}, emulsiontype{"E","W","2254/5254 Vision3 Intermediate"}},
+    {{2, 60}, emulsiontype{"E","U","5260 Vision 2 500T"}},
+    {{2, 63}, emulsiontype{"E","E","5263/7263 Vision 500T"}},
+    {{2, 65}, emulsiontype{"E","C","7265"}},
+    {{2, 66}, emulsiontype{"E","D","7266"}},
+    {{2, 73}, emulsiontype{"E","S","5273/7273/2273/3273 Internegative"}},
+    {{2, 84}, emulsiontype{"E","G","5284/7284 Vision Expression 500T"}},
+    {{2, 85}, emulsiontype{"E","A","5285 100D"}},
+    {{2, 99}, emulsiontype{"E","I","7299"}},
+    {{3,  1}, emulsiontype{"F","I","F-CI (8501, 8601, 8701)"}},
+    {{3,  2}, emulsiontype{"F","I","F-CI (8502, 8602, 8702)"}},
+    {{3,  3}, emulsiontype{"F","I","ETERNA CI Intermediate (8503,4503)"}},
+    {{3, 10}, emulsiontype{"F","N","F-64"}},
+    {{3, 11}, emulsiontype{"F","I","ETERNA RDI Digital Inter (8511,4511)"}},
+    {{3, 13}, emulsiontype{"F","I","F-CI"}},
+    {{3, 14}, emulsiontype{"F","N","F-500"}},
+    {{3, 20}, emulsiontype{"F","N","F-64D"}},
+    {{3, 21}, emulsiontype{"F","N","F-64D (8521, 8621, 8721)"}},
+    {{3, 22}, emulsiontype{"F","N","F-64D (8522, 8622)"}},
+    {{3, 30}, emulsiontype{"F","N","F-125"}},
+    {{3, 31}, emulsiontype{"F","N","F-125 (8531, 8631, 8731)"}},
+    {{3, 32}, emulsiontype{"F","N","F-125 (8532, 8632)"}},
+    {{3, 40}, emulsiontype{"F","R","VELVIA color reversal (8540)"}},
+    {{3, 43}, emulsiontype{"F","N","ETERNA Vivid160 (8543,8643)"}},
+    {{3, 46}, emulsiontype{"F","N","ETERNA Vivid250D (8546/8646)"}},
+    {{3, 47}, emulsiontype{"F","N","ETERNA Vivid500 (8547/8647)"}},
+    {{3, 50}, emulsiontype{"F","N","F-250"}},
+    {{3, 51}, emulsiontype{"F","N","F-250 (8551, 8651, 8751)"}},
+    {{3, 52}, emulsiontype{"F","N","F-250 (8552, 8652,)"}},
+    {{3, 53}, emulsiontype{"F","N","ETERNA 250 (8553, 8653)"}},
+    {{3, 60}, emulsiontype{"F","N","F-250D"}},
+    {{3, 61}, emulsiontype{"F","N","F-250D (8561, 8661, 8761)"}},
+    {{3, 62}, emulsiontype{"F","N","F-250D (8562, 8662)"}},
+    {{3, 63}, emulsiontype{"F","N","ETERNA 250D (8563, 8663)"}},
+    {{3, 70}, emulsiontype{"F","N","F-500 (8570, 8670, 8770)"}},
+    {{3, 71}, emulsiontype{"F","N","F-500 (8571, 8671)"}},
+    {{3, 72}, emulsiontype{"F","N","F-500 (8572, 8672)"}},
+    {{3, 73}, emulsiontype{"F","N","ETERNA 500 (8573, 8673)"}},
+    {{3, 82}, emulsiontype{"F","N","F-400 (8582, 8682)"}},
+    {{3, 83}, emulsiontype{"F","N","ETERNA 400 (8583, 8683)"}},
+    {{3, 92}, emulsiontype{"F","N","REALA 500D (8592, 8692)"}}
+};
+
+bool get_emulsion_type(int manufacturer_code, int emulsion_code, emulsiontype& result){
+
+    if (manufacturer_code == 12 || manufacturer_code == 22 ){
+        manufacturer_code = 2;
+    }
+    if (manufacturer_code == 13 || manufacturer_code == 23){
+        manufacturer_code = 3;
+    }
+
+    auto it = g_emulsions.find(filmcodes(manufacturer_code, emulsion_code));
+
+    if (it != std::end(g_emulsions)) {
+        result = it->second;
+        return true;
+    }
+    return false;
+}
+
+std::string expand_mfg(std::string mfgCode){
+
+    std::string mfg;
+
+    if (mfgCode == "O") {
+        mfg = "ORWO";
+    }
+    else if (mfgCode == "A") {
+        mfg = "Agfa";
+    }
+    else if (mfgCode == "K") {
+        mfg = "Kodak";
+    }
+    else if (mfgCode == "E") {
+        mfg = "Eastman";
+    }
+    else if (mfgCode == "F") {
+        mfg = "Fuji";
+    }
+
+    return mfg;
+}
+
 
 // Obligatory material to make this a recognizeable imageio plugin:
 OIIO_PLUGIN_EXPORTS_BEGIN
@@ -474,6 +618,15 @@ DPXInput::seek_subimage(int subimage, int miplevel)
         int kc[7];
         get_keycode_values(kc);
         m_spec.attribute("smpte:KeyCode", TypeKeyCode, kc);
+
+        // See if we have emulsion metadata
+        emulsiontype emulsion;
+        if (get_emulsion_type(kc[0], kc[1], emulsion)) {
+			m_spec.attribute("dpx:EmulsionMfgCode", std::get<0>(emulsion));
+			m_spec.attribute("dpx:EmulsionMfg", expand_mfg(std::get<0>(emulsion)));
+			m_spec.attribute("dpx:EmulsionCode", std::get<1>(emulsion));
+			m_spec.attribute("dpx:EmulsionType", std::get<2>(emulsion));
+		}
     }
 
     if (m_dpx.header.timeCode != 0xFFFFFFFF) {
